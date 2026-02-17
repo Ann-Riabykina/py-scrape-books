@@ -19,8 +19,7 @@ class BooksSpider(scrapy.Spider):
 
     def parse(self, response):
         for href in response.css("article.product_pod h3 a::attr(href)").getall():
-            book_url = response.urljoin(href)
-            yield scrapy.Request(book_url, callback=self.parse_book)
+            yield response.follow(href, callback=self.parse_book)
 
         next_page = response.css("li.next a::attr(href)").get()
         if next_page:
@@ -70,6 +69,9 @@ class BooksSpider(scrapy.Spider):
         return value if value else None
 
     def _parse_stock(self, text):
+        if not text:
+            return 0
+
         m = re.search(r"\((\d+)\s+available\)", text)
         return int(m.group(1)) if m else 0
 
@@ -80,7 +82,7 @@ class BooksSpider(scrapy.Spider):
         return self.RATING_MAP.get(rating_word)
 
     def _parse_category(self, response):
-        crumbs = [c.strip() for c in response.css("ul.breadcrumb li a::text").getall() if c.strip()]
-        if len(crumbs) >= 3:
-            return crumbs[-1]
+        crumbs = [c.strip() for c in
+                  response.css("ul.breadcrumb li a::text").getall() if
+                  c.strip()]
         return crumbs[-1] if crumbs else None
