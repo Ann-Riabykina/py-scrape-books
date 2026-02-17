@@ -1,6 +1,8 @@
 import re
 import scrapy
 
+from books_scraper.items import BooksScraperItem
+
 
 class BooksSpider(scrapy.Spider):
     name = "books"
@@ -48,15 +50,17 @@ class BooksSpider(scrapy.Spider):
         ).get()
         upc = self._clean(upc)
 
-        yield {
-            "title": title,
-            "price": price,
-            "amount_in_stock": amount_in_stock,
-            "rating": rating,
-            "category": category,
-            "description": description,
-            "upc": upc,
-        }
+        item = BooksScraperItem()
+
+        item["title"] = title
+        item["price"] = price
+        item["amount_in_stock"] = amount_in_stock
+        item["rating"] = rating
+        item["category"] = category
+        item["description"] = description
+        item["upc"] = upc
+
+        yield item
 
 
     def _clean(self, value):
